@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
@@ -21,9 +20,17 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/admin/login");
+        return;
+      }
+      setCheckingAuth(false);
+
       const { data: contentRow } = await supabase.from("site_content").select("value").eq("key", "main").maybeSingle();
       const { data: productsData } = await supabase.from("products").select("*").order("position", { ascending: true });
       if (contentRow?.value) setContent(contentRow.value as SiteContent);
@@ -129,7 +136,7 @@ export default function DashboardPage() {
     setUploadingId(null);
   }
 
-  if (loading) {
+  if (checkingAuth || loading) {
     return <div className="min-h-screen flex items-center justify-center text-sm text-ink/50">Memuat...</div>;
   }
 

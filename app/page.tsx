@@ -1,4 +1,6 @@
-import { createClient } from "@/lib/supabase-server";
+"use client";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase-browser";
 import { DEFAULT_CONTENT, type Product, type SiteContent } from "@/lib/types";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -7,30 +9,39 @@ import About from "@/components/About";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 
-export const revalidate = 0;
+export default function HomePage() {
+  const [content, setContent] = useState<SiteContent>(DEFAULT_CONTENT);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-async function getData() {
-  const supabase = await createClient();
+  useEffect(() => {
+    (async () => {
+      const supabase = createClient();
 
-  const { data: contentRow } = await supabase
-    .from("site_content")
-    .select("value")
-    .eq("key", "main")
-    .maybeSingle();
+      const { data: contentRow } = await supabase
+        .from("site_content")
+        .select("value")
+        .eq("key", "main")
+        .maybeSingle();
 
-  const { data: productsData } = await supabase
-    .from("products")
-    .select("*")
-    .order("position", { ascending: true });
+      const { data: productsData } = await supabase
+        .from("products")
+        .select("*")
+        .order("position", { ascending: true });
 
-  const content: SiteContent = (contentRow?.value as SiteContent) ?? DEFAULT_CONTENT;
-  const products: Product[] = productsData ?? [];
+      if (contentRow?.value) setContent(contentRow.value as SiteContent);
+      if (productsData) setProducts(productsData as Product[]);
+      setLoading(false);
+    })();
+  }, []);
 
-  return { content, products };
-}
-
-export default async function HomePage() {
-  const { content, products } = await getData();
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-cream">
+        <p className="text-sm text-ink/50">Memuat...</p>
+      </main>
+    );
+  }
 
   return (
     <main>
