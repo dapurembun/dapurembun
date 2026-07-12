@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; }
+
+.divider {
+  width: 64px;
+  height: 2px;
+  background: theme('colors.gold');
+  margin: 10px auto 0;
+  position: relative;
+}
+.divider::after {
+  content: "◆";
+  color: theme('colors.gold');
+  font-size: 9px;
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  transform: translateX(-50%);
+  background: theme('colors.cream');
+  padding: 0 4px;
+}
